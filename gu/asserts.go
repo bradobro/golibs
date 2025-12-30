@@ -54,7 +54,7 @@ func NotEqual[T any](t testingT, got T, want T, hint string) {
 func Nil(t testingT, got any, hint string) {
 	t.Helper()
 	msg := hinted(fmt.Sprintf("got %v; want nil", got), hint)
-	assertTrue(t, !isNil(got), msg)
+	assertTrue(t, isNil(got), msg)
 }
 
 // NotNil checks if a value is not nil and reports an error if it is nil.
@@ -62,7 +62,7 @@ func Nil(t testingT, got any, hint string) {
 func NotNil(t testingT, got any, hint string) {
 	t.Helper()
 	msg := hinted("got nil; want non-nil", hint)
-	assertTrue(t, isNil(got), msg)
+	assertTrue(t, !isNil(got), msg)
 }
 
 // ErrorIs checks if an error is of a specific type and reports an error if it is not.
