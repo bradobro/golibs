@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.2.0 - 2025-12-30
+#### Features
+- add basic test assertions - (69348c7) - Brad Olson
+- add assertions - (fb96947) - Brad Olson
+- add assertions from bradobro/myworkflow - (3018b72) - Brad Olson
+
+- - -
+
 ## v0.1.0 - 2025-12-29
 #### Features
 - initialize cocogitto - (1ab2ead) - Brad Olson
