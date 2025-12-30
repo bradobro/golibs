@@ -38,6 +38,31 @@ func (f *fakeT) Fatalf(format string, args ...interface{}) {
 	}
 }
 
+// Assertion wrapper functions for table-driven tests
+func wrapTrue(t testingT, args ...interface{}) {
+	True(t, args[0].(bool), args[1].(string))
+}
+
+func wrapFalse(t testingT, args ...interface{}) {
+	False(t, args[0].(bool), args[1].(string))
+}
+
+func wrapEqual(t testingT, args ...interface{}) {
+	Equal(t, args[0], args[1], args[2].(string))
+}
+
+func wrapNotEqual(t testingT, args ...interface{}) {
+	NotEqual(t, args[0], args[1], args[2].(string))
+}
+
+func wrapNil(t testingT, args ...interface{}) {
+	Nil(t, args[0], args[1].(string))
+}
+
+func wrapNotNil(t testingT, args ...interface{}) {
+	NotNil(t, args[0], args[1].(string))
+}
+
 // TestAssertionsTableDriven tests all assertion functions using a table-driven approach.
 func TestAssertionsTableDriven(t *testing.T) {
 	tests := []struct {
@@ -49,108 +74,84 @@ func TestAssertionsTableDriven(t *testing.T) {
 	}{
 		// True tests
 		{
-			testName: "True passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				True(t, args[0].(bool), args[1].(string))
-			},
+			testName:   "True passes",
+			assertFunc: wrapTrue,
 			args:       []interface{}{true, ""},
 			expectFail: false,
 		},
 		{
-			testName: "True fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				True(t, args[0].(bool), args[1].(string))
-			},
+			testName:   "True fails",
+			assertFunc: wrapTrue,
 			args:       []interface{}{false, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got false; want true",
 		},
 		// False tests
 		{
-			testName: "False passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				False(t, args[0].(bool), args[1].(string))
-			},
+			testName:   "False passes",
+			assertFunc: wrapFalse,
 			args:       []interface{}{false, ""},
 			expectFail: false,
 		},
 		{
-			testName: "False fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				False(t, args[0].(bool), args[1].(string))
-			},
+			testName:   "False fails",
+			assertFunc: wrapFalse,
 			args:       []interface{}{true, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got true; want false",
 		},
 		// Equal tests
 		{
-			testName: "Equal passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				Equal(t, args[0], args[1], args[2].(string))
-			},
+			testName:   "Equal passes",
+			assertFunc: wrapEqual,
 			args:       []interface{}{42, 42, ""},
 			expectFail: false,
 		},
 		{
-			testName: "Equal fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				Equal(t, args[0], args[1], args[2].(string))
-			},
+			testName:   "Equal fails",
+			assertFunc: wrapEqual,
 			args:       []interface{}{42, 43, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got 42; want 43",
 		},
 		// NotEqual tests
 		{
-			testName: "NotEqual passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				NotEqual(t, args[0], args[1], args[2].(string))
-			},
+			testName:   "NotEqual passes",
+			assertFunc: wrapNotEqual,
 			args:       []interface{}{42, 43, ""},
 			expectFail: false,
 		},
 		{
-			testName: "NotEqual fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				NotEqual(t, args[0], args[1], args[2].(string))
-			},
+			testName:   "NotEqual fails",
+			assertFunc: wrapNotEqual,
 			args:       []interface{}{42, 42, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got 42; want something different",
 		},
 		// Nil tests
 		{
-			testName: "Nil passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				Nil(t, args[0], args[1].(string))
-			},
+			testName:   "Nil passes",
+			assertFunc: wrapNil,
 			args:       []interface{}{nil, ""},
 			expectFail: false,
 		},
 		{
-			testName: "Nil fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				Nil(t, args[0], args[1].(string))
-			},
+			testName:   "Nil fails",
+			assertFunc: wrapNil,
 			args:       []interface{}{42, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got 42; want nil",
 		},
 		// NotNil tests
 		{
-			testName: "NotNil passes",
-			assertFunc: func(t testingT, args ...interface{}) {
-				NotNil(t, args[0], args[1].(string))
-			},
+			testName:   "NotNil passes",
+			assertFunc: wrapNotNil,
 			args:       []interface{}{42, ""},
 			expectFail: false,
 		},
 		{
-			testName: "NotNil fails",
-			assertFunc: func(t testingT, args ...interface{}) {
-				NotNil(t, args[0], args[1].(string))
-			},
+			testName:   "NotNil fails",
+			assertFunc: wrapNotNil,
 			args:       []interface{}{nil, "custom message"},
 			expectFail: true,
 			expectMsg:  "custom message: got nil; want non-nil",

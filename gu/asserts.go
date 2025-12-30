@@ -99,7 +99,15 @@ func MatchesRegexp(t testingT, got, pattern, hint string) {
 	}
 }
 
-// isEqual compares two values for equality, handling nil values and custom equality methods.
+// isEqual compares two values for equality.
+//
+// This handles three cases that == on Comparable types cannot:
+//  1. Nil interface edge cases: two typed nil values wrapped in interfaces
+//     won't compare equal with ==, but should be considered equal here.
+//  2. Custom equality: types implementing Equal(T) bool (like time.Time) can
+//     define their own semantics, ignoring fields that shouldn't affect equality.
+//  3. Non-comparable types: slices, maps, and structs containing them cannot
+//     use == at all; DeepEqual compares their contents.
 func isEqual[T any](got, want T) bool {
 	if isNil(got) && isNil(want) {
 		return true
@@ -110,7 +118,27 @@ func isEqual[T any](got, want T) bool {
 	return reflect.DeepEqual(got, want)
 }
 
-// isNil checks if a value is nil, considering various types like pointers, slices, and maps.
+// isNil checks if a value is nil, handling the typed-nil-in-interface gotcha.
+//
+// In Go, an interface value has two components: a type and a value. The
+// expression v == nil only returns true if BOTH are nil. This causes surprises:
+//
+//	var p *int = nil
+//	var v interface{} = p
+//	v == nil  // false! Type is *int, value is nil
+//
+// This commonly occurs with error returns:
+//
+//	func getError() error {
+//	    var e *MyError = nil
+//	    return e  // Returns (*MyError)(nil), not nil
+//	}
+//	err := getError()
+//	err == nil  // false!
+//
+// This function uses reflection to check if the underlying value is nil,
+// regardless of interface type information. The Kind() switch is required
+// because IsNil() panics on non-nillable types (int, string, struct, etc.).
 func isNil(v any) bool {
 	if v == nil {
 		return true
