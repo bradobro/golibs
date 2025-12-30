@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"testing"
 )
 
 // testingT is an interface that matches the methods used by our test helpers
@@ -52,7 +51,7 @@ func NotEqual[T any](t testingT, got T, want T, hint string) {
 
 // Nil checks if a value is nil and reports an error if it is not.
 // It includes an optional hint for additional context.
-func Nil(t *testing.T, got any, hint string) {
+func Nil(t testingT, got any, hint string) {
 	t.Helper()
 	msg := hinted(fmt.Sprintf("got %v; want nil", got), hint)
 	assertTrue(t, !isNil(got), msg)
@@ -60,7 +59,7 @@ func Nil(t *testing.T, got any, hint string) {
 
 // NotNil checks if a value is not nil and reports an error if it is nil.
 // It includes an optional hint for additional context.
-func NotNil(t *testing.T, got any, hint string) {
+func NotNil(t testingT, got any, hint string) {
 	t.Helper()
 	msg := hinted("got nil; want non-nil", hint)
 	assertTrue(t, isNil(got), msg)
@@ -68,7 +67,7 @@ func NotNil(t *testing.T, got any, hint string) {
 
 // ErrorIs checks if an error is of a specific type and reports an error if it is not.
 // It includes an optional hint for additional context.
-func ErrorIs(t *testing.T, got, want error, hint string) {
+func ErrorIs(t testingT, got, want error, hint string) {
 	t.Helper()
 	msg := hinted(fmt.Sprintf("got %v; want something different", got), hint)
 	assertTrue(t, errors.Is(got, want), msg)
@@ -76,12 +75,12 @@ func ErrorIs(t *testing.T, got, want error, hint string) {
 
 // ErrorAs checks if an error can be assigned to a target type and reports an error if it cannot.
 // It includes an optional hint for additional context.
-func ErrorAs(t *testing.T, got error, target any, hint string) {
+func ErrorAs(t testingT, got error, target any, hint string) {
 	t.Helper()
 	msg := hinted(fmt.Sprintf("got %v; want assignable to: %T", got, target), hint)
 	assertTrue(t, got != nil, msg)
 	if got == nil {
-		t.Error(msg)
+		t.Fatal(msg)
 	} else {
 		assertTrue(t, errors.As(got, target), msg)
 	}
@@ -89,7 +88,7 @@ func ErrorAs(t *testing.T, got error, target any, hint string) {
 
 // MatchesRegexp checks if a string matches a regular expression pattern and reports an error if it does not.
 // It includes an optional hint for additional context.
-func MatchesRegexp(t *testing.T, got, pattern, hint string) {
+func MatchesRegexp(t testingT, got, pattern, hint string) {
 	t.Helper()
 	msg := fmt.Sprintf("got %v; doesn't match %q", got, pattern)
 	matched, err := regexp.MatchString(pattern, got)

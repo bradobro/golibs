@@ -38,46 +38,139 @@ func (f *fakeT) Fatalf(format string, args ...interface{}) {
 	}
 }
 
-// TestAssertTrueSuccess tests assertTrue with passing conditions
-func TestAssertTrueSuccess(t *testing.T) {
-	// Test with real t to ensure normal success path works
-	assertTrue(t, true, "")
-	assertTrue(t, true, "with message")
-	assertTrue(t, 1 == 2-1, "")
-}
+// TestAssertionsTableDriven tests all assertion functions using a table-driven approach.
+func TestAssertionsTableDriven(t *testing.T) {
+	tests := []struct {
+		testName   string
+		assertFunc func(t testingT, args ...interface{})
+		args       []interface{}
+		expectFail bool
+		expectMsg  string
+	}{
+		// True tests
+		{
+			testName: "True passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				True(t, args[0].(bool), args[1].(string))
+			},
+			args:       []interface{}{true, ""},
+			expectFail: false,
+		},
+		{
+			testName: "True fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				True(t, args[0].(bool), args[1].(string))
+			},
+			args:       []interface{}{false, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got false; want true",
+		},
+		// False tests
+		{
+			testName: "False passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				False(t, args[0].(bool), args[1].(string))
+			},
+			args:       []interface{}{false, ""},
+			expectFail: false,
+		},
+		{
+			testName: "False fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				False(t, args[0].(bool), args[1].(string))
+			},
+			args:       []interface{}{true, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got true; want false",
+		},
+		// Equal tests
+		{
+			testName: "Equal passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				Equal(t, args[0], args[1], args[2].(string))
+			},
+			args:       []interface{}{42, 42, ""},
+			expectFail: false,
+		},
+		{
+			testName: "Equal fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				Equal(t, args[0], args[1], args[2].(string))
+			},
+			args:       []interface{}{42, 43, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got 42; want 43",
+		},
+		// NotEqual tests
+		{
+			testName: "NotEqual passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				NotEqual(t, args[0], args[1], args[2].(string))
+			},
+			args:       []interface{}{42, 43, ""},
+			expectFail: false,
+		},
+		{
+			testName: "NotEqual fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				NotEqual(t, args[0], args[1], args[2].(string))
+			},
+			args:       []interface{}{42, 42, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got 42; want something different",
+		},
+		// Nil tests
+		{
+			testName: "Nil passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				Nil(t, args[0], args[1].(string))
+			},
+			args:       []interface{}{nil, ""},
+			expectFail: false,
+		},
+		{
+			testName: "Nil fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				Nil(t, args[0], args[1].(string))
+			},
+			args:       []interface{}{42, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got 42; want nil",
+		},
+		// NotNil tests
+		{
+			testName: "NotNil passes",
+			assertFunc: func(t testingT, args ...interface{}) {
+				NotNil(t, args[0], args[1].(string))
+			},
+			args:       []interface{}{42, ""},
+			expectFail: false,
+		},
+		{
+			testName: "NotNil fails",
+			assertFunc: func(t testingT, args ...interface{}) {
+				NotNil(t, args[0], args[1].(string))
+			},
+			args:       []interface{}{nil, "custom message"},
+			expectFail: true,
+			expectMsg:  "custom message: got nil; want non-nil",
+		},
+	}
 
-// TestAssertTrueFailureEmptyMessage tests assertTrue failure with empty message
-func TestAssertTrueFailureEmptyMessage(t *testing.T) {
-	fake := &fakeT{TB: t}
-	assertTrue(fake, false, "")
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			fake := &fakeT{TB: t}
+			tt.assertFunc(fake, tt.args...)
 
-	if !fake.fatalCalled {
-		t.Error("Expected Fatal to be called")
-	}
-	if !fake.helperCalled {
-		t.Error("Expected Helper to be called")
-	}
-	if !strings.Contains(fake.fatalMessage, "expected true but got false") {
-		t.Errorf("Expected error message to contain 'expected true but got false', got: %s", fake.fatalMessage)
-	}
-}
-
-// TestAssertTrueFailureWithMessage tests assertTrue failure with custom message
-func TestAssertTrueFailureWithMessage(t *testing.T) {
-	fake := &fakeT{TB: t}
-	assertTrue(fake, false, "custom message")
-
-	if !fake.fatalCalled {
-		t.Error("Expected Fatal to be called")
-	}
-	if !fake.helperCalled {
-		t.Error("Expected Helper to be called")
-	}
-	// The format string will be "%s: expected true but got false"
-	if !strings.Contains(fake.fatalMessage, "%s") {
-		t.Errorf("Expected format string to contain '%%s', got: %s", fake.fatalMessage)
-	}
-	if !strings.Contains(fake.fatalMessage, "expected true but got false") {
-		t.Errorf("Expected error message to contain 'expected true but got false', got: %s", fake.fatalMessage)
+			if tt.expectFail && !fake.fatalCalled {
+				t.Errorf("%s: expected Fatal to be called", tt.testName)
+			}
+			if !tt.expectFail && fake.fatalCalled {
+				t.Errorf("%s: did not expect Fatal to be called", tt.testName)
+			}
+			if tt.expectFail && !strings.Contains(fake.fatalMessage, tt.expectMsg) {
+				t.Errorf("%s: expected error message to contain '%s', got: '%s'", tt.testName, tt.expectMsg, fake.fatalMessage)
+			}
+		})
 	}
 }
